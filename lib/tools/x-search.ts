@@ -1,6 +1,5 @@
 import { generateText, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
-import { getTweet } from 'react-tweet/api';
 import { xai } from '@ai-sdk/xai';
 import { UIMessageStreamWriter } from 'ai';
 import { ChatMessage } from '@/lib/types';
@@ -151,51 +150,17 @@ export function xSearchTool(dataStream?: UIMessageStreamWriter<ChatMessage>) {
                   return false;
                 });
 
-              const tweetFetchPromises = uniqueCitations
-                .map(async (link) => {
-                  try {
-                    const tweetUrl = link.url || '';
-                    const tweetId = extractTweetId(tweetUrl);
-
-                    if (!tweetId) return null;
-
-                    const tweetData = await getTweet(tweetId);
-                    if (!tweetData) return null;
-
-                    const text = tweetData.text;
-                    if (!text) return null;
-
-                    return {
-                      text: text,
-                      link: canonicalTweetLink(tweetId, tweetUrl),
-                      id: tweetId,
-                    };
-                  } catch (error) {
-                    console.error(`Error fetching tweet data for ${link.sourceType === 'url' ? link.url : ''}:`, error);
-                    return null;
-                  }
-                });
-
-              const tweetMap = await all(
-                Object.fromEntries(tweetFetchPromises.map((promise, index) => [`t:${index}`, async () => promise])),
-                getBetterAllOptions(),
+              allSources.push(
+                ...uniqueCitations.map((link) => {
+                  const sourceUrl = link.url || '';
+                  const tweetId = extractTweetId(sourceUrl);
+                  return {
+                    text: '',
+                    link: canonicalTweetLink(tweetId, sourceUrl),
+                    id: tweetId || sourceUrl,
+                  };
+                }),
               );
-              const tweetResults = tweetFetchPromises.map((_, index) => tweetMap[`t:${index}`]);
-
-              const validTweets = tweetResults.filter((result) => result !== null);
-
-              // Deduplicate allSources within this query by link
-              const seenSourceLinks = new Set<string>();
-              const uniqueTweets = validTweets.filter((tweet) => {
-                const key = tweet?.link || tweet?.id;
-                if (tweet && key && !seenSourceLinks.has(key)) {
-                  seenSourceLinks.add(key);
-                  return true;
-                }
-                return false;
-              });
-
-              allSources.push(...uniqueTweets);
             }
 
             // Deduplicate citations by URL
