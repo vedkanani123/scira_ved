@@ -60,9 +60,9 @@ export type SearchGroupId =
 
 // Search provider information for dynamic descriptions
 export const searchProviderInfo = {
-  parallel: 'Parallel AI',
-  exa: 'Exa, one of the best web search APIs for AI',
-  firecrawl: 'Firecrawl',
+  parallel: 'AI-only mode',
+  exa: 'AI-only mode',
+  firecrawl: 'AI-only mode',
 } as const;
 
 export type SearchProvider = keyof typeof searchProviderInfo;
@@ -70,11 +70,12 @@ export type SearchProvider = keyof typeof searchProviderInfo;
 // Function to get dynamic web search description based on selected provider
 export function getWebSearchDescription(provider: SearchProvider = 'exa'): string {
   const providerName = searchProviderInfo[provider];
-  return `Search across the entire internet powered by ${providerName}`;
+  return `AI-only assistant mode (${providerName})`;
 }
 
 // Function to get search groups with dynamic descriptions
 export function getSearchGroups(searchProvider: SearchProvider = 'exa') {
+  const showLegacyModes = process.env.NEXT_PUBLIC_ENABLE_LEGACY_MODES === 'true';
   return [
     {
       id: 'web' as const,
@@ -102,14 +103,14 @@ export function getSearchGroups(searchProvider: SearchProvider = 'exa') {
       name: 'Stocks',
       description: 'Stock and currency information',
       icon: AppleStocksIcon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'connectors' as const,
       name: 'Connectors',
       description: 'Search Google Drive, Notion and OneDrive documents',
       icon: ConnectIcon,
-      show: true,
+      show: showLegacyModes,
       requireAuth: true,
       requirePro: true,
     },
@@ -118,7 +119,7 @@ export function getSearchGroups(searchProvider: SearchProvider = 'exa') {
       name: 'Apps',
       description: 'Use tools from your connected apps',
       icon: AppsIcon,
-      show: process.env.NEXT_PUBLIC_MCP_ENABLED === 'true',
+      show: showLegacyModes && process.env.NEXT_PUBLIC_MCP_ENABLED === 'true',
       requireAuth: true,
       requirePro: true,
     },
@@ -134,23 +135,23 @@ export function getSearchGroups(searchProvider: SearchProvider = 'exa') {
     {
       id: 'code' as const,
       name: 'Code',
-      description: 'Get context about languages and frameworks',
+      description: 'AI coding assistance and document context',
       icon: CodeCircleIcon,
       show: true,
     },
     {
       id: 'academic' as const,
       name: 'Academic',
-      description: 'Search academic papers and pdfs powered by Firecrawl',
+      description: 'AI academic assistant mode',
       icon: MicroscopeIcon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'extreme' as const,
       name: 'Extreme',
       description: 'Deep research with multiple sources and analysis',
       icon: AtomicPowerIcon,
-      show: true,
+      show: showLegacyModes,
       requireAuth: true,
     },
     {
@@ -158,7 +159,7 @@ export function getSearchGroups(searchProvider: SearchProvider = 'exa') {
       name: 'Memory',
       description: 'Your personal memory companion',
       icon: Database02Icon,
-      show: true,
+      show: showLegacyModes,
       requireAuth: true,
     },
     {
@@ -166,49 +167,49 @@ export function getSearchGroups(searchProvider: SearchProvider = 'exa') {
       name: 'Reddit',
       description: 'Search Reddit posts powered by Parallel',
       icon: RedditIcon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'github' as const,
       name: 'GitHub',
       description: 'Search GitHub repositories, code, and discussions',
       icon: Github01Icon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'crypto' as const,
       name: 'Crypto',
       description: 'Cryptocurrency research powered by CoinGecko',
       icon: Bitcoin02Icon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'prediction' as const,
       name: 'Prediction',
       description: 'Search prediction markets from Polymarket and Kalshi',
       icon: Chart03Icon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'youtube' as const,
       name: 'YouTube',
       description: 'Search content inside YouTube videos, channels and playlists',
       icon: YoutubeIcon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'spotify' as const,
       name: 'Spotify',
       description: 'Search songs, artists, and albums on Spotify',
       icon: SpotifyIcon,
-      show: true,
+      show: showLegacyModes,
     },
     {
       id: 'canvas' as const,
       name: 'Canvas',
       description: 'Research and generate interactive dashboards and visual reports',
       icon: CanvasIcon,
-      show: true,
+      show: showLegacyModes,
       requireAuth: true,
       requirePro: true,
     },

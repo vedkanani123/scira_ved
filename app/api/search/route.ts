@@ -821,7 +821,10 @@ export async function POST(req: Request) {
         });
       };
 
-      const shouldLoadMcpTools = Boolean(lightweightUser?.isProUser && (group === 'mcp' || group === 'extreme'));
+      const legacyModesEnabled = process.env.NEXT_PUBLIC_ENABLE_LEGACY_MODES === 'true';
+      const shouldLoadMcpTools = Boolean(
+        legacyModesEnabled && lightweightUser?.isProUser && (group === 'mcp' || group === 'extreme'),
+      );
 
       if (shouldLoadMcpTools && lightweightUser) {
         const { resolveUserMcpTools } = await import('@/lib/tools/mcp-client');
@@ -840,7 +843,7 @@ export async function POST(req: Request) {
       const dynamicMcpToolNames = Object.keys(mcpDynamicTools);
       const configuredActiveTools = [
         ...activeTools,
-        ...(group === 'mcp' || group === 'extreme' ? dynamicMcpToolNames : []),
+        ...(legacyModesEnabled && (group === 'mcp' || group === 'extreme') ? dynamicMcpToolNames : []),
       ];
       const streamActiveTools =
         model === 'scira-qwen-coder-plus' || model === 'scira-qwen-3-vl' || model === 'scira-qwen-3-vl-thinking'
@@ -853,7 +856,7 @@ export async function POST(req: Request) {
         timezone,
         contextFiles,
         extremeSearchModel,
-        includeMcpTools: group === 'extreme' || group === 'mcp',
+        includeMcpTools: legacyModesEnabled && (group === 'extreme' || group === 'mcp'),
         mcpDynamicTools,
         lightweightUser,
         selectedConnectors,
@@ -866,6 +869,7 @@ export async function POST(req: Request) {
             xai_x_search: xai.tools.xSearch(),
           }
         : loadedTools;
+      const resolvedActiveTools = shouldUseXaiMultiAgent ? ['xai_web_search', 'xai_x_search'] : Object.keys(streamTools);
 
       function setUsageMetadataFromUsage(
         usage:
@@ -975,7 +979,7 @@ export async function POST(req: Request) {
             : {}),
         maxRetries: 10,
         abortSignal: abortController.signal,
-        activeTools: shouldUseXaiMultiAgent ? ['xai_web_search', 'xai_x_search'] : streamActiveTools,
+        activeTools: resolvedActiveTools,
         experimental_transform: markdownJoinerTransform(),
         system:
           instructions +

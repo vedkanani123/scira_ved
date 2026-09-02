@@ -38,10 +38,22 @@ export async function loadConfiguredTools({
 }: LoadConfiguredToolsParams): Promise<Record<string, any>> {
   const tools: Record<string, any> = {};
   const uniqueToolNames = [...new Set(activeToolNames)];
+  const aiOnlyAllowedToolNames = new Set([
+    'text_translate',
+    'datetime',
+    'greeting',
+    'file_query_search',
+    'x_search',
+    'xai_web_search',
+    'xai_x_search',
+  ]);
   let memoryTools: { searchMemories: any; addMemory: any } | null = null;
 
   await Promise.all(
     uniqueToolNames.map(async (toolName) => {
+      if (!aiOnlyAllowedToolNames.has(toolName)) {
+        return;
+      }
       switch (toolName) {
         case 'stock_chart': {
           const { stockChartTool } = await import('@/lib/tools/stock-chart');
